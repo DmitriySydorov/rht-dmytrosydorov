@@ -59,16 +59,16 @@
 
 /* Accorditon custom */
 .product-accordion {
-  border-top: 1px solid #334fb4;
+  border-top: 0.1px solid #334fb495;
 }
 
 .accordion-item {
-  border-bottom: 1px solid #334fb4;
+  border-bottom: 0.1px solid #334fb495;
   transition: background 0.3s ease;
 }
 
 .accordion-toggle {
-  all: unset;
+  all: inherit;
   cursor: pointer;
   width: 100%;
   padding: 12px;
@@ -84,8 +84,8 @@
 .accordion-toggle::after {
   content: '';
   flex: none;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-right: 2px solid #334fb4;
   border-bottom: 2px solid #334fb4;
   transform: rotate(45deg);
@@ -111,5 +111,5 @@
 
 .accordion-item.open .accordion-content {
   max-height: 1000px;
-  padding: 10px 12px;
+  padding: 0 12px;
 }
