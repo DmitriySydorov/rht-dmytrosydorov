@@ -76,7 +76,21 @@
   <div class="page-width">
     <div class="product product--{{ section.settings.media_size }} product--{{ section.settings.media_position }} product--{{ section.settings.gallery_layout }} product--mobile-{{ section.settings.mobile_thumbnails }} grid grid--1-col {% if product.media.size > 0 %}grid--2-col-tablet{% else %}product--no-media{% endif %}">
       <div class="grid__item product__media-wrapper">
-        {% render 'product-media-gallery', variant_images: variant_images %}
+         {% if section.settings.gallery_layout == 'swiper' %}
+          <product-gallery
+            product='{{ product | json }}'
+            slides-per-view-breakpoints='{
+              "320": {{ section.settings.slides_per_view_mob }},
+              "768": {{ section.settings.slides_per_view_tab }},
+              "1024": {{ section.settings.slides_per_view_desk }}
+            }'
+            pagination="{{ section.settings.enable_pagination }}"
+            navigation="{{ section.settings.enable_navigation }}"
+            space-between="{{ section.settings.space_between }}"
+          ></product-gallery>
+        {% else %}
+          {% render 'product-media-gallery', variant_images: variant_images %}
+        {% endif %}
       </div>
       <div class="product__info-wrapper grid__item{% if settings.page_width > 1400 and section.settings.media_size == "small" %} product__info-wrapper--extra-padding{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
         <section
@@ -509,6 +523,24 @@
                     </p>
                   </div>
                 {%- endif -%}
+              {%- when 'accordion' -%}
+                <product-accordion data-allow-multiple="{{ block.settings.allow_multiple }}">
+                  {% assign accordions = product.metafields.custom.accordion.value %}
+                  {% if accordions != blank %}
+                    {% for item in accordions %}
+                      {% assign title = item.title %}
+                      {% assign description = item.description %}
+                      {% if title != blank %}
+                        <div class="accordion-item">
+                          <button class="accordion-toggle">{{ title }}</button>
+                          <div class="accordion-content">
+                            {{ description | metafield_tag }}
+                          </div>
+                        </div>
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                </product-accordion>
               {%- when 'complementary' -%}
                 <product-recommendations
                   class="complementary-products quick-add-hidden{% if block.settings.make_collapsible_row %} is-accordion{% endif %}{% if block.settings.enable_quick_add %} complementary-products-contains-quick-add{% endif %}"
@@ -732,6 +764,18 @@
   "blocks": [
     {
       "type": "@app"
+    },
+    {
+      "type": "accordion",
+      "name": "Accordion",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "allow_multiple",
+          "label": "Allow multiple open accordions",
+          "default": false
+        }
+      ]
     },
     {
       "type": "text",
@@ -2089,6 +2133,55 @@
     },
     {
       "type": "header",
+      "content": "Swiper layout"
+    },
+    {
+      "type": "range",
+      "id": "slides_per_view_desk",
+      "label": "Slides for desktop",
+      "min": 1,
+      "max": 6,
+      "default": 1
+    },
+        {
+      "type": "range",
+      "id": "slides_per_view_tab",
+      "label": "Slides for tablet",
+      "min": 1,
+      "max": 4,
+      "default": 1
+    },
+        {
+      "type": "range",
+      "id": "slides_per_view_mob",
+      "label": "Slides for mobile",
+      "min": 1,
+      "max": 3,
+      "default": 1
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_pagination",
+      "label": "Pagination",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_navigation",
+      "label": "Navigation",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "space_between",
+      "label": "Space between slides",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "default": 10
+    },
+    {
+      "type": "header",
       "content": "t:sections.main-product.settings.header.content"
     },
     {
@@ -2138,6 +2231,10 @@
       "id": "gallery_layout",
       "options": [
         {
+          "value": "swiper",
+          "label": "swiper"
+        },
+        {
           "value": "stacked",
           "label": "t:sections.main-product.settings.gallery_layout.options__1.label"
         },
@@ -2155,7 +2252,8 @@
         }
       ],
       "default": "stacked",
-      "label": "t:sections.main-product.settings.gallery_layout.label"
+      "label": "t:sections.main-product.settings.gallery_layout.label",
+      "info": "When choosing swiper layout some settings may not work"
     },
     {
       "type": "select",

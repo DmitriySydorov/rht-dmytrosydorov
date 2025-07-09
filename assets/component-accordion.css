@@ -56,3 +56,60 @@
 .accordion__content img {
   max-width: 100%;
 }
+
+/* Accorditon custom */
+.product-accordion {
+  border-top: 1px solid #334fb4;
+}
+
+.accordion-item {
+  border-bottom: 1px solid #334fb4;
+  transition: background 0.3s ease;
+}
+
+.accordion-toggle {
+  all: unset;
+  cursor: pointer;
+  width: 100%;
+  padding: 12px;
+  font-weight: 500;
+  font-size: 16px;
+  color: #19244e;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.accordion-toggle::after {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid #334fb4;
+  border-bottom: 2px solid #334fb4;
+  transform: rotate(45deg);
+  transition: transform 0.3s ease;
+  margin-left: auto;
+}
+
+
+.accordion-item.open .accordion-toggle::after {
+  transform: rotate(135deg);
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  color: #19244e;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: max-height 0.4s ease;
+  padding: 0 12px;
+  background: rgba(255,255,255,0.3);
+}
+
+.accordion-item.open .accordion-content {
+  max-height: 1000px;
+  padding: 10px 12px;
+}

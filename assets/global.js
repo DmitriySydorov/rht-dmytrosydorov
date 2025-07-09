@@ -826,6 +826,209 @@ class SliderComponent extends HTMLElement {
 
 customElements.define('slider-component', SliderComponent);
 
+class ProductGallery extends HTMLElement {
+  constructor() {
+    super();
+    this.swiper = null;
+    this.container = this;
+  }
+
+  connectedCallback() {
+    const productData = JSON.parse(this.getAttribute('product') || '{}');
+    const paginationEnabled = this.getAttribute('pagination') === 'true';
+    const navigationEnabled = this.getAttribute('navigation') === 'true';
+    const spaceBetween = parseInt(this.getAttribute('space-between') || '10');
+
+    let breakpoints = {};
+    const breakpointsAttr = this.getAttribute('slides-per-view-breakpoints');
+    if (breakpointsAttr) {
+      try {
+        const parsed = JSON.parse(breakpointsAttr);
+        Object.keys(parsed).forEach(bp => {
+          breakpoints[bp] = { slidesPerView: parsed[bp] };
+        });
+      } catch (e) {
+        console.error('Invalid slides-per-view-breakpoints JSON', e);
+      }
+    }
+
+    const style = document.createElement('style');
+    style.textContent = `
+      .swiper { width: 100%; height: auto; display: block; }
+      .swiper-slide img { width: 100%; display: block; }
+      .swiper-slide { display: block; }
+      .hidden-slide { display: none !important; }
+    `;
+
+    const swiperEl = document.createElement('div');
+    swiperEl.classList.add('swiper');
+
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('swiper-wrapper');
+
+    const variantImageUrls = new Set();
+    productData.variants.forEach(variant => {
+      if (variant.featured_image && variant.featured_image.src) {
+        variantImageUrls.add(variant.featured_image.src.replace(/^https?:/, ''));
+      }
+    });
+
+    const activeRadio = document.querySelector('.swatch-input__input:checked');
+    const activeColor = activeRadio ? activeRadio.value.toLowerCase() : null;
+
+    const matchingSlides = [];
+    const otherSlides = [];
+
+    productData.media
+      .filter(m => m.media_type === 'image')
+      .forEach(m => {
+        const alt = (m.alt || '').toLowerCase();
+        const slide = document.createElement('div');
+        slide.classList.add('swiper-slide');
+        slide.dataset.color = alt;
+
+        const img = document.createElement('img');
+        img.src = m.src;
+        img.alt = m.alt || '';
+        slide.appendChild(img);
+
+        const slideSrc = m.src.replace(/^https?:/, '');
+        if (variantImageUrls.has(slideSrc)) {
+          matchingSlides.push(slide);
+        } else {
+          otherSlides.push(slide);
+        }
+      });
+
+    matchingSlides.concat(otherSlides).forEach(slide => wrapper.appendChild(slide));
+
+    swiperEl.appendChild(wrapper);
+
+    if (paginationEnabled) {
+      const pagination = document.createElement('div');
+      pagination.classList.add('swiper-pagination');
+      swiperEl.appendChild(pagination);
+    }
+
+    if (navigationEnabled) {
+      const prev = document.createElement('div');
+      const next = document.createElement('div');
+      prev.classList.add('swiper-button-prev');
+      next.classList.add('swiper-button-next');
+      swiperEl.appendChild(prev);
+      swiperEl.appendChild(next);
+    }
+
+    this.innerHTML = '';
+    this.container.appendChild(style);
+    this.container.appendChild(swiperEl);
+
+    this.swiper = new Swiper(swiperEl, {
+      breakpoints: Object.keys(breakpoints).length ? breakpoints : undefined,
+      spaceBetween,
+      pagination: paginationEnabled
+        ? {
+            el: swiperEl.querySelector('.swiper-pagination'),
+            clickable: true,
+          }
+        : false,
+      navigation: navigationEnabled
+        ? {
+            nextEl: swiperEl.querySelector('.swiper-button-next'),
+            prevEl: swiperEl.querySelector('.swiper-button-prev'),
+          }
+        : false,
+    });
+
+    this.setupGlobalListener();
+    this.initialFilter();
+  }
+
+  filterSlidesByColor(color) {
+    if (!color) return;
+    const normalizedColor = color.toLowerCase();
+    const wrapper = this.querySelector('.swiper-wrapper');
+    const slides = Array.from(wrapper.children);
+    let anyVisible = false;
+
+    slides.forEach((slide) => {
+      if (!slide.dataset.color) {
+        slide.classList.remove('hidden-slide');
+        anyVisible = true;
+        return;
+      }
+
+      let slideColor = slide.dataset.color.toLowerCase();
+      if (slideColor.startsWith('variant:')) {
+        slideColor = slideColor.replace('variant:', '');
+      }
+
+      const isVisible = slideColor === normalizedColor;
+      slide.classList.toggle('hidden-slide', !isVisible);
+      if (isVisible) anyVisible = true;
+    });
+
+    if (!anyVisible) {
+      slides.forEach((slide) => slide.classList.remove('hidden-slide'));
+    }
+
+    this.swiper.update();
+    this.swiper.slideTo(0, 0);
+  }
+
+
+  setupGlobalListener() {
+    document.body.addEventListener('change', (event) => {
+      const target = event.target;
+      if (target.matches('.swatch-input__input') && target.checked) {
+        this.filterSlidesByColor(target.value);
+      }
+    });
+  }
+
+  initialFilter() {
+    const activeRadio = document.querySelector('.swatch-input__input:checked');
+    if (activeRadio) {
+      this.filterSlidesByColor(activeRadio.value);
+    }
+  }
+}
+
+customElements.define('product-gallery', ProductGallery);
+
+document.addEventListener('shopify:section:load', () => {
+  document.querySelectorAll('product-gallery').forEach(el => {
+    el.connectedCallback?.();
+  });
+});
+
+class ProductAccordion extends HTMLElement {
+  constructor() {
+    super();
+  }
+
+  connectedCallback() {
+    const allowMultiple = this.getAttribute('data-allow-multiple') === 'true';
+
+    const container = this;
+
+    const items = container.querySelectorAll('.accordion-item');
+    items.forEach(item => {
+      const toggle = item.querySelector('.accordion-toggle');
+      toggle.addEventListener('click', () => {
+        const isOpen = item.classList.contains('open');
+        if (!allowMultiple) {
+          items.forEach(i => i.classList.remove('open'));
+        }
+        if (!isOpen || allowMultiple) {
+          item.classList.toggle('open');
+        }
+      });
+    });
+  }
+}
+customElements.define('product-accordion', ProductAccordion);
+
 class SlideshowComponent extends SliderComponent {
   constructor() {
     super();
