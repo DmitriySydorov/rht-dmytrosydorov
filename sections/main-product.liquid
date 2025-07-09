@@ -84,6 +84,20 @@
               "768": {{ section.settings.slides_per_view_tab }},
               "1024": {{ section.settings.slides_per_view_desk }}
             }'
+            controls-breakpoints='{
+              "320": {
+                "pagination": {{ section.settings.enable_pagination_mobile | json }},
+                "navigation": {{ section.settings.enable_navigation_mobile | json }}
+              },
+              "768": {
+                "pagination": {{ section.settings.enable_pagination_tablet | json }},
+                "navigation": {{ section.settings.enable_navigation_tablet | json }}
+              },
+              "1024": {
+                "pagination": {{ section.settings.enable_pagination_desktop | json }},
+                "navigation": {{ section.settings.enable_navigation_desktop | json }}
+              }
+            }'
             pagination="{{ section.settings.enable_pagination }}"
             navigation="{{ section.settings.enable_navigation }}"
             space-between="{{ section.settings.space_between }}"
@@ -2137,22 +2151,6 @@
     },
     {
       "type": "range",
-      "id": "slides_per_view_desk",
-      "label": "Slides for desktop",
-      "min": 1,
-      "max": 6,
-      "default": 1
-    },
-        {
-      "type": "range",
-      "id": "slides_per_view_tab",
-      "label": "Slides for tablet",
-      "min": 1,
-      "max": 4,
-      "default": 1
-    },
-        {
-      "type": "range",
       "id": "slides_per_view_mob",
       "label": "Slides for mobile",
       "min": 1,
@@ -2160,15 +2158,55 @@
       "default": 1
     },
     {
+      "type": "range",
+      "id": "slides_per_view_tab",
+      "label": "Slides for tablet",
+      "min": 1,
+      "max": 4,
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "slides_per_view_desk",
+      "label": "Slides for desktop",
+      "min": 1,
+      "max": 6,
+      "default": 1
+    },
+    {
       "type": "checkbox",
-      "id": "enable_pagination",
-      "label": "Pagination",
+      "id": "enable_pagination_mobile",
+      "label": "Enable pagination on mobile",
       "default": true
     },
     {
       "type": "checkbox",
-      "id": "enable_navigation",
-      "label": "Navigation",
+      "id": "enable_pagination_tablet",
+      "label": "Enable pagination on tablet",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_pagination_desktop",
+      "label": "Enable pagination on desktop",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_navigation_mobile",
+      "label": "Enable navigation arrows on mobile",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_navigation_tablet",
+      "label": "Enable navigation arrows on tablet",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_navigation_desktop",
+      "label": "Enable navigation arrows on desktop",
       "default": true
     },
     {

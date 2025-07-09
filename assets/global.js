@@ -834,115 +834,137 @@ class ProductGallery extends HTMLElement {
   }
 
   connectedCallback() {
-    const productData = JSON.parse(this.getAttribute('product') || '{}');
-    const paginationEnabled = this.getAttribute('pagination') === 'true';
-    const navigationEnabled = this.getAttribute('navigation') === 'true';
-    const spaceBetween = parseInt(this.getAttribute('space-between') || '10');
+  const productData = JSON.parse(this.getAttribute('product') || '{}');
+  const spaceBetween = parseInt(this.getAttribute('space-between') || '10');
 
-    let breakpoints = {};
-    const breakpointsAttr = this.getAttribute('slides-per-view-breakpoints');
-    if (breakpointsAttr) {
-      try {
-        const parsed = JSON.parse(breakpointsAttr);
-        Object.keys(parsed).forEach(bp => {
-          breakpoints[bp] = { slidesPerView: parsed[bp] };
-        });
-      } catch (e) {
-        console.error('Invalid slides-per-view-breakpoints JSON', e);
-      }
-    }
-
-    const style = document.createElement('style');
-    style.textContent = `
-      .swiper { width: 100%; height: auto; display: block; }
-      .swiper-slide img { width: 100%; display: block; }
-      .swiper-slide { display: block; }
-      .hidden-slide { display: none !important; }
-    `;
-
-    const swiperEl = document.createElement('div');
-    swiperEl.classList.add('swiper');
-
-    const wrapper = document.createElement('div');
-    wrapper.classList.add('swiper-wrapper');
-
-    const variantImageUrls = new Set();
-    productData.variants.forEach(variant => {
-      if (variant.featured_image && variant.featured_image.src) {
-        variantImageUrls.add(variant.featured_image.src.replace(/^https?:/, ''));
-      }
-    });
-
-    const activeRadio = document.querySelector('.swatch-input__input:checked');
-    const activeColor = activeRadio ? activeRadio.value.toLowerCase() : null;
-
-    const matchingSlides = [];
-    const otherSlides = [];
-
-    productData.media
-      .filter(m => m.media_type === 'image')
-      .forEach(m => {
-        const alt = (m.alt || '').toLowerCase();
-        const slide = document.createElement('div');
-        slide.classList.add('swiper-slide');
-        slide.dataset.color = alt;
-
-        const img = document.createElement('img');
-        img.src = m.src;
-        img.alt = m.alt || '';
-        slide.appendChild(img);
-
-        const slideSrc = m.src.replace(/^https?:/, '');
-        if (variantImageUrls.has(slideSrc)) {
-          matchingSlides.push(slide);
-        } else {
-          otherSlides.push(slide);
-        }
+  let breakpointsSlides = {};
+  const slidesAttr = this.getAttribute('slides-per-view-breakpoints');
+  if (slidesAttr) {
+    try {
+      const parsed = JSON.parse(slidesAttr);
+      Object.keys(parsed).forEach(bp => {
+        breakpointsSlides[bp] = { slidesPerView: parsed[bp] };
       });
-
-    matchingSlides.concat(otherSlides).forEach(slide => wrapper.appendChild(slide));
-
-    swiperEl.appendChild(wrapper);
-
-    if (paginationEnabled) {
-      const pagination = document.createElement('div');
-      pagination.classList.add('swiper-pagination');
-      swiperEl.appendChild(pagination);
+    } catch (e) {
+      console.error('Invalid slides-per-view-breakpoints JSON', e);
     }
+  }
 
-    if (navigationEnabled) {
-      const prev = document.createElement('div');
-      const next = document.createElement('div');
-      prev.classList.add('swiper-button-prev');
-      next.classList.add('swiper-button-next');
-      swiperEl.appendChild(prev);
-      swiperEl.appendChild(next);
+  let breakpointsControls = {};
+  const controlsAttr = this.getAttribute('controls-breakpoints');
+  if (controlsAttr) {
+    try {
+      breakpointsControls = JSON.parse(controlsAttr);
+    } catch (e) {
+      console.error('Invalid controls-breakpoints JSON', e);
     }
+  }
 
-    this.innerHTML = '';
-    this.container.appendChild(style);
-    this.container.appendChild(swiperEl);
+  this.classList.forEach(cls => {
+    if (cls.startsWith('pg-')) this.classList.remove(cls);
+  });
 
-    this.swiper = new Swiper(swiperEl, {
-      breakpoints: Object.keys(breakpoints).length ? breakpoints : undefined,
-      spaceBetween,
-      pagination: paginationEnabled
-        ? {
-            el: swiperEl.querySelector('.swiper-pagination'),
-            clickable: true,
-          }
-        : false,
-      navigation: navigationEnabled
-        ? {
-            nextEl: swiperEl.querySelector('.swiper-button-next'),
-            prevEl: swiperEl.querySelector('.swiper-button-prev'),
-          }
-        : false,
+  ['320', '768', '1024'].forEach(bp => {
+    const bpName = bp === '320' ? 'mobile' : bp === '768' ? 'tablet' : 'desktop';
+    const nav = breakpointsControls[bp]?.navigation ? 'true' : 'false';
+    const pag = breakpointsControls[bp]?.pagination ? 'true' : 'false';
+    this.classList.add(`pg-nav-${bpName}-${nav}`);
+    this.classList.add(`pg-pag-${bpName}-${pag}`);
+  });
+  
+  const style = document.createElement('style');
+  style.textContent = `
+    .swiper { width: 100%; height: auto; display: block; }
+    .swiper-slide img { width: 100%; display: block; }
+    .swiper-slide { display: block; }
+    .hidden-slide { display: none !important; }
+  `;
+
+  const swiperEl = document.createElement('div');
+  swiperEl.classList.add('swiper');
+
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('swiper-wrapper');
+
+  const variantImageUrls = new Set();
+  productData.variants.forEach(variant => {
+    if (variant.featured_image && variant.featured_image.src) {
+      variantImageUrls.add(variant.featured_image.src.replace(/^https?:/, ''));
+    }
+  });
+
+  const matchingSlides = [];
+  const otherSlides = [];
+
+  productData.media
+    .filter(m => m.media_type === 'image')
+    .forEach(m => {
+      const alt = (m.alt || '').toLowerCase();
+      const slide = document.createElement('div');
+      slide.classList.add('swiper-slide');
+      slide.dataset.color = alt;
+
+      const img = document.createElement('img');
+      img.src = m.src;
+      img.alt = m.alt || '';
+      slide.appendChild(img);
+
+      const slideSrc = m.src.replace(/^https?:/, '');
+      if (variantImageUrls.has(slideSrc)) {
+        matchingSlides.push(slide);
+      } else {
+        otherSlides.push(slide);
+      }
     });
 
-    this.setupGlobalListener();
-    this.initialFilter();
-  }
+  matchingSlides.concat(otherSlides).forEach(slide => wrapper.appendChild(slide));
+  swiperEl.appendChild(wrapper);
+
+  const paginationEl = document.createElement('div');
+  paginationEl.classList.add('swiper-pagination');
+  swiperEl.appendChild(paginationEl);
+
+  const prevEl = document.createElement('div');
+  prevEl.classList.add('swiper-button-prev');
+  swiperEl.appendChild(prevEl);
+
+  const nextEl = document.createElement('div');
+  nextEl.classList.add('swiper-button-next');
+  swiperEl.appendChild(nextEl);
+
+  this.innerHTML = '';
+  this.container.appendChild(style);
+  this.container.appendChild(swiperEl);
+
+  const swiperBreakpoints = {};
+
+  Object.keys(breakpointsSlides).forEach(bp => {
+    swiperBreakpoints[bp] = {
+      ...breakpointsSlides[bp],
+      pagination: breakpointsControls[bp]?.pagination
+        ? {
+            el: paginationEl,
+            clickable: true
+          }
+        : false,
+      navigation: breakpointsControls[bp]?.navigation
+        ? {
+            nextEl: nextEl,
+            prevEl: prevEl
+          }
+        : false
+    };
+  });
+
+  this.swiper = new Swiper(swiperEl, {
+    breakpoints: swiperBreakpoints,
+    spaceBetween: spaceBetween
+  });
+
+  this.setupGlobalListener();
+  this.initialFilter();
+}
+
 
   filterSlidesByColor(color) {
     if (!color) return;
