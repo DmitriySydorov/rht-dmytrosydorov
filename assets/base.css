@@ -3618,3 +3618,40 @@ details-disclosure > details {
     transform: translateX(100%) scaleX(0);
   }
 }
+
+
+.swiper-button-prev,
+.swiper-button-next,
+.swiper-pagination {
+  display: block;
+}
+
+@media (max-width: 767px) {
+  .pg-nav-mobile-false .swiper-button-prev,
+  .pg-nav-mobile-false .swiper-button-next {
+    display: none !important;
+  }
+  .pg-pag-mobile-false .swiper-pagination {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .pg-nav-tablet-false .swiper-button-prev,
+  .pg-nav-tablet-false .swiper-button-next {
+    display: none !important;
+  }
+  .pg-pag-tablet-false .swiper-pagination {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pg-nav-desktop-false .swiper-button-prev,
+  .pg-nav-desktop-false .swiper-button-next {
+    display: none !important;
+  }
+  .pg-pag-desktop-false .swiper-pagination {
+    display: none !important;
+  }
+}
